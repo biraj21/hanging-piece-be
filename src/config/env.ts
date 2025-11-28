@@ -1,0 +1,20 @@
+import { z } from "zod";
+import dotenv from "dotenv";
+
+// Load environment variables from .env file
+dotenv.config({ override: true });
+
+const envSchema = z.object({
+  PORT: z.string().transform((val) => Number(val)),
+  FRONTEND_ORIGINS: z
+    .array(z.url())
+    .default(["http://localhost:5173", "https://chesstard.win", "https://www.chesstard.win"]),
+
+  SQLITE_DB_PATH: z.string().min(1).default("./db/chesstard-db.sqlite"),
+  INIT_SQL_PATH: z.string().min(1).default("init.sql"),
+
+  GOOGLE_CLIENT_ID: z.string().min(1),
+  GOOGLE_CLIENT_SECRET: z.string().min(1),
+});
+
+export const env = envSchema.parse(process.env);
