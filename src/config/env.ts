@@ -1,11 +1,13 @@
-import { z } from "zod";
 import dotenv from "dotenv";
+import { z } from "zod";
 
 // Load environment variables from .env file
 dotenv.config({ override: true });
 
 const envSchema = z.object({
   PORT: z.string().transform((val) => Number(val)),
+
+  SERVER_URL: z.url(),
   FRONTEND_ORIGINS: z
     .array(z.url())
     .default(["http://localhost:5173", "https://chesstard.win", "https://www.chesstard.win"]),
