@@ -9,7 +9,12 @@
     "start": "node dist/index.js",
     "build-n-start": "$npm_execpath run build && $npm_execpath run start",
     "dev": "tsx watch --clear-screen=false src/index.ts",
-    "auth-db-generate": "$npm_execpath run build && npx @better-auth/cli@latest generate --config ./dist/config/auth.js"
+    "auth-db-generate": "$npm_execpath run build && npx @better-auth/cli@latest generate --config ./dist/config/auth.js",
+    "pm2-start": "$npm_execpath run build && pm2 start --name chesstard dist/index.js -i 2 --max-memory-restart 800M",
+    "pm2-stop": "pm2 stop chesstard",
+    "pm2-restart": "pm2 restart chesstard",
+    "pm2-logs": "pm2 logs chesstard",
+    "pm2-monitor": "pm2 monit"
   },
   "imports": {
     "#src/*": "./dist/*.js"
@@ -22,6 +27,7 @@
     "@types/better-sqlite3": "^7.6.13",
     "@types/express": "^5.0.5",
     "@types/node": "^24.10.1",
+    "pm2": "^6.0.14",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   },

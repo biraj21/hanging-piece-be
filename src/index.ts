@@ -5,6 +5,7 @@ import express from "express";
 import { auth } from "#src/config/auth";
 import { env } from "#src/config/env";
 import { printRoutes } from "./utils/express.js";
+import { getPm2Info } from "./utils/index.js";
 
 const app = express();
 
@@ -25,7 +26,15 @@ app.use(express.json());
 
 async function init() {
   app.listen(env.PORT, () => {
+    const { pm2Instance, isLeader } = getPm2Info();
+
     console.log(`Server is running on port ${env.PORT}`);
+    // Explicit PM2 leader log so you can see it in `pm2 logs` output.
+    if (pm2Instance === null) {
+      console.log(`[PM2] Leader: true — not running under PM2 (single process)`);
+    } else {
+      console.log(`[PM2] Leader: ${isLeader} (NODE_APP_INSTANCE=${pm2Instance})`);
+    }
 
     // Print all registered routes
     printRoutes(app);
