@@ -18,11 +18,33 @@ app.use(
   })
 );
 
+app.use((req, res, next) => {
+  const start = Date.now();
+
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    console.log(
+      JSON.stringify({
+        method: req.method,
+        url: req.originalUrl,
+        status: res.statusCode,
+        duration,
+      })
+    );
+  });
+
+  next();
+});
+
 app.all("/api/auth/*splat", toNodeHandler(auth));
 
 // Mount express json middleware after Better Auth handler
 // or only apply it to routes that don't interact with Better Auth
 app.use(express.json());
+
+app.get("/api/health", (_req, res) => {
+  res.status(200).json({ status: "ok" });
+});
 
 async function init() {
   app.listen(env.PORT, () => {
