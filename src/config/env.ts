@@ -13,6 +13,8 @@ const envSchema = z.object({
   SQLITE_DB_PATH: z.string().min(1).default("./db/hangingpiece-db.sqlite"),
   INIT_SQL_PATH: z.string().min(1).default("init.sql"),
 
+  AUTH_SECRET: z.string().min(1),
+
   GOOGLE_CLIENT_ID: z.string().min(1),
   GOOGLE_CLIENT_SECRET: z.string().min(1),
 });
