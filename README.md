@@ -1,4 +1,4 @@
-# chesstard backend
+# Hanging Piece backend
 
 ## Stack
 

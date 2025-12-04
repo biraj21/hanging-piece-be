@@ -8,11 +8,9 @@ const envSchema = z.object({
   PORT: z.string().transform((val) => Number(val)),
 
   SERVER_URL: z.url(),
-  FRONTEND_ORIGINS: z
-    .array(z.url())
-    .default(["http://localhost:5173", "https://chesstard.win", "https://www.chesstard.win"]),
+  FRONTEND_ORIGINS: z.array(z.url()).default(["http://localhost:5173", "https://www.hangingpiece.com"]),
 
-  SQLITE_DB_PATH: z.string().min(1).default("./db/chesstard-db.sqlite"),
+  SQLITE_DB_PATH: z.string().min(1).default("./db/hangingpiece-db.sqlite"),
   INIT_SQL_PATH: z.string().min(1).default("init.sql"),
 
   GOOGLE_CLIENT_ID: z.string().min(1),
