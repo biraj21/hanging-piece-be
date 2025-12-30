@@ -23,6 +23,19 @@ export const auth = betterAuth({
     },
   },
 
+  user: {
+    additionalFields: {
+      chesscomId: {
+        type: "string",
+        required: false,
+      },
+      lichessId: {
+        type: "string",
+        required: false,
+      },
+    },
+  },
+
   socialProviders: {
     google: {
       // /auth/callback/google

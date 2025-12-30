@@ -5,6 +5,7 @@ import express from "express";
 import { auth } from "#src/config/auth";
 import { env } from "#src/config/env";
 import explainRouter from "#src/routes/explain";
+import userRouter from "#src/routes/user";
 import { printRoutes } from "./utils/express.js";
 import { getPm2Info } from "./utils/index.js";
 
@@ -44,6 +45,7 @@ app.all("/auth/*splat", toNodeHandler(auth));
 app.use(express.json());
 
 app.use(explainRouter);
+app.use(userRouter);
 
 app.get("/health", (_req, res) => {
   res.status(200).json({ status: "ok" });
