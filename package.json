@@ -29,7 +29,9 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@ai-sdk/google": "3.0.0-beta.69",
     "@types/cors": "^2.8.19",
+    "ai": "6.0.0-beta.145",
     "better-auth": "^1.4.3",
     "better-sqlite3": "^12.4.6",
     "cors": "^2.8.5",

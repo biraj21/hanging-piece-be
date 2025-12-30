@@ -4,6 +4,7 @@ import express from "express";
 
 import { auth } from "#src/config/auth";
 import { env } from "#src/config/env";
+import explainRouter from "#src/routes/explain";
 import { printRoutes } from "./utils/express.js";
 import { getPm2Info } from "./utils/index.js";
 
@@ -41,6 +42,8 @@ app.all("/auth/*splat", toNodeHandler(auth));
 // Mount express json middleware after Better Auth handler
 // or only apply it to routes that don't interact with Better Auth
 app.use(express.json());
+
+app.use(explainRouter);
 
 app.get("/health", (_req, res) => {
   res.status(200).json({ status: "ok" });

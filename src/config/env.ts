@@ -10,6 +10,8 @@ const envSchema = z.object({
   SERVER_URL: z.url(),
   FRONTEND_ORIGINS: z.array(z.url()).default(["http://localhost:5173", "https://www.hangingpiece.com"]),
 
+  GEMINI_API_KEY: z.string().min(1),
+
   SQLITE_DB_PATH: z.string().min(1).default("./db/hangingpiece-db.sqlite"),
   INIT_SQL_PATH: z.string().min(1).default("init.sql"),
 

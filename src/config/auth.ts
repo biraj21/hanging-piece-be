@@ -14,6 +14,15 @@ export const auth = betterAuth({
   // see https://www.better-auth.com/docs/reference/options#trustedorigins
   trustedOrigins: env.FRONTEND_ORIGINS,
 
+  // see https://www.better-auth.com/docs/concepts/session-management#cookie-cache
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60,
+      strategy: "jwt", // or "jwt" or "jwe"
+    },
+  },
+
   socialProviders: {
     google: {
       // /auth/callback/google
