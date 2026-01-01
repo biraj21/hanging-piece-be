@@ -15,16 +15,16 @@ const MODELS = {
 
 const continuationSchema = z.object({
   pgn: z.string(),
-  before_fen: z.string(),
-  after_fen: z.string(),
+  beforeFen: z.string(),
+  afterFen: z.string(),
   color: z.enum(["w", "b"]).optional(),
 });
 
 const explainRequestSchema = z.object({
   move: z.object({
     pgn: z.string(),
-    before_fen: z.string(),
-    after_fen: z.string(),
+    beforeFen: z.string(),
+    afterFen: z.string(),
   }),
   badContinuation: z.array(continuationSchema).max(8).optional(),
   bestContinuation: z.array(continuationSchema).max(8).min(1), // Must include at least the best move itself
@@ -172,8 +172,8 @@ router.post("/explain", requireAuth, async (req: Request, res: Response) => {
           const moveColor = c.color === "w" ? "White" : c.color === "b" ? "Black" : "Unknown";
           return [
             `  Move ${idx + 1}: ${c.pgn} (${moveColor})`,
-            `    Position before: ${c.before_fen}`,
-            `    Position after:  ${c.after_fen}`,
+            `    Position before: ${c.beforeFen}`,
+            `    Position after:  ${c.afterFen}`,
           ].join("\n");
         })
         .join("\n\n");
@@ -189,9 +189,9 @@ router.post("/explain", requireAuth, async (req: Request, res: Response) => {
       `Opening: ${[payload.opening, payload.eco].filter(Boolean).join(" • ") || "unknown"}`,
       "",
       "=== MOVE PLAYED (THE BAD MOVE) ===",
-      `Position before move (FEN): ${payload.move.before_fen}`,
+      `Position before move (FEN): ${payload.move.beforeFen}`,
       `Move played by ${colorText}: ${payload.move.pgn}`,
-      `Position after move (FEN): ${payload.move.after_fen}`,
+      `Position after move (FEN): ${payload.move.afterFen}`,
       `Engine evaluation: ${moveQualityText}`,
       "",
       badContinuationLines
