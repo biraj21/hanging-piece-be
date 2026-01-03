@@ -14,21 +14,22 @@ const MODELS = {
 };
 
 const continuationSchema = z.object({
-  pgn: z.string(),
+  san: z.string(),
   beforeFen: z.string(),
   afterFen: z.string(),
-  color: z.enum(["w", "b"]).optional(),
+  color: z.enum(["white", "black"]),
 });
 
 const explainRequestSchema = z.object({
   move: z.object({
-    pgn: z.string(),
+    san: z.string(),
     beforeFen: z.string(),
     afterFen: z.string(),
   }),
-  badContinuation: z.array(continuationSchema).max(8).optional(),
-  bestContinuation: z.array(continuationSchema).max(8).min(1), // Must include at least the best move itself
-  color: z.enum(["w", "b"]),
+  badContinuation: z.array(continuationSchema),
+  bestContinuation: z.array(continuationSchema).min(1),
+  color: z.enum(["white", "black"]),
+  userColor: z.enum(["white", "black"]).optional(), // Color the user is playing as
   moveQuality: z.enum(["blunder", "mistake", "inaccuracy", "good", "brilliant"]).optional(),
   mate: z.number().optional().default(0),
   opening: z.string().optional(),
@@ -38,26 +39,20 @@ const explainRequestSchema = z.object({
 
 const explainResponseSchema = z.object({
   explanation: z.string(),
-  badContinuation: z
-    .array(
-      z.object({
-        move: z.string(),
-        color: z.enum(["white", "black"]).optional(),
-        reason: z.string(),
-      })
-    )
-    .max(8)
-    .optional(),
-  bestContinuation: z
-    .array(
-      z.object({
-        move: z.string(),
-        color: z.enum(["white", "black"]).optional(),
-        reason: z.string(),
-      })
-    )
-    .max(8)
-    .optional(),
+  badContinuation: z.array(
+    z.object({
+      move: z.string(),
+      color: z.enum(["white", "black"]),
+      reason: z.string(),
+    })
+  ),
+  bestContinuation: z.array(
+    z.object({
+      move: z.string(),
+      color: z.enum(["white", "black"]),
+      reason: z.string(),
+    })
+  ),
 });
 
 const systemPrompt = `
@@ -71,6 +66,7 @@ CRITICAL INSTRUCTIONS:
 3. Parse each FEN string character by character to understand piece positions
 4. ⚠️ ABSOLUTELY DO NOT INVENT OR ADD MOVES - Your job is ONLY to explain the exact moves provided by Stockfish
 5. Do NOT suggest alternative variations or calculate additional moves
+6. If userColor is provided, personalize your explanations using "you/your" for the user's moves and "opponent" for their opponent's moves
 
 Task: 
 1. Write a concise overview comparing both lines
@@ -115,35 +111,6 @@ function stripCodeFences(text: string): string {
   return trimmed;
 }
 
-function normalizeStructured(raw: unknown, fallbackExplanation: string) {
-  const base =
-    raw && typeof raw === "object"
-      ? (raw as { explanation?: unknown; badContinuation?: unknown; bestContinuation?: unknown })
-      : { explanation: undefined, badContinuation: undefined, bestContinuation: undefined };
-
-  const explanation =
-    typeof base.explanation === "string" && base.explanation.trim().length > 0 ? base.explanation : fallbackExplanation;
-
-  const normalizeContinuationArray = (input: unknown) => {
-    const continuationsInput = Array.isArray(input) ? input : [];
-    return continuationsInput
-      .map((c) => {
-        if (!c || typeof c !== "object") return null;
-        const move = typeof c.move === "string" ? c.move : undefined;
-        const reason = typeof c.reason === "string" ? c.reason : undefined;
-        const color = typeof c.color === "string" ? c.color : undefined;
-        if (!move || !reason) return null;
-        return { move, reason, color };
-      })
-      .filter(Boolean) as Array<{ move: string; reason: string; color?: string }>;
-  };
-
-  const badContinuation = normalizeContinuationArray(base.badContinuation);
-  const bestContinuation = normalizeContinuationArray(base.bestContinuation);
-
-  return { explanation, badContinuation, bestContinuation };
-}
-
 const googleProvider = createGoogleGenerativeAI({
   apiKey: env.GEMINI_API_KEY,
 });
@@ -159,19 +126,22 @@ router.post("/explain", requireAuth, async (req: Request, res: Response) => {
   const payload = parsed.data;
 
   try {
-    const colorText = payload.color === "w" ? "white" : "black";
-    const moveQualityText = payload.moveQuality ? payload.moveQuality : "unspecified";
+    const moveQualityText = payload.moveQuality || "unspecified";
 
-    const badContinuation = payload.badContinuation || [];
-    const bestContinuation = payload.bestContinuation || [];
+    // Build user context text if userColor is provided
+    let userContextText = "";
+    if (payload.userColor) {
+      userContextText = `User is playing as ${payload.userColor} (${
+        payload.userColor === payload.color ? "this is the user's move" : "this is the opponent's move"
+      })`;
+    }
 
-    const formatContinuation = (moves: typeof badContinuation) => {
-      if (moves.length === 0) return "";
+    // Format continuation moves for the prompt
+    const formatContinuation = (moves: z.infer<typeof continuationSchema>[]) => {
       return moves
         .map((c, idx) => {
-          const moveColor = c.color === "w" ? "White" : c.color === "b" ? "Black" : "Unknown";
           return [
-            `  Move ${idx + 1}: ${c.pgn} (${moveColor})`,
+            `  Move ${idx + 1}: ${c.san} (${c.color})`,
             `    Position before: ${c.beforeFen}`,
             `    Position after:  ${c.afterFen}`,
           ].join("\n");
@@ -179,18 +149,19 @@ router.post("/explain", requireAuth, async (req: Request, res: Response) => {
         .join("\n\n");
     };
 
-    const badContinuationLines = formatContinuation(badContinuation);
-    const bestContinuationLines = formatContinuation(bestContinuation);
+    const badContinuationLines = formatContinuation(payload.badContinuation);
+    const bestContinuationLines = formatContinuation(payload.bestContinuation);
 
     const userPrompt = [
       "=== POSITION ANALYSIS ===",
       "",
-      `Player to move: ${colorText}`,
+      `Player to move: ${payload.color}`,
+      userContextText,
       `Opening: ${[payload.opening, payload.eco].filter(Boolean).join(" • ") || "unknown"}`,
       "",
       "=== MOVE PLAYED (THE BAD MOVE) ===",
       `Position before move (FEN): ${payload.move.beforeFen}`,
-      `Move played by ${colorText}: ${payload.move.pgn}`,
+      `Move played by ${payload.color}: ${payload.move.san}`,
       `Position after move (FEN): ${payload.move.afterFen}`,
       `Engine evaluation: ${moveQualityText}`,
       "",
@@ -249,10 +220,9 @@ router.post("/explain", requireAuth, async (req: Request, res: Response) => {
       },
     });
 
-    const structuredText = stripCodeFences(structuredResult.text);
-    const structuredRaw = JSON.parse(structuredText);
-    const normalized = normalizeStructured(structuredRaw, "");
-    const parsedResult = explainResponseSchema.safeParse(normalized);
+    const cleanedText = stripCodeFences(structuredResult.text);
+    const parsedJson = JSON.parse(cleanedText);
+    const parsedResult = explainResponseSchema.safeParse(parsedJson);
     if (!parsedResult.success) {
       return res.status(500).json({ error: "LLM returned invalid format", details: parsedResult.error.issues });
     }
@@ -262,18 +232,14 @@ router.post("/explain", requireAuth, async (req: Request, res: Response) => {
     console.log("✅ LLM RESPONSE:");
     console.log("=".repeat(80));
     console.log("Explanation:", parsedResult.data.explanation);
-    console.log("\nBad continuation:", parsedResult.data.badContinuation?.length || 0, "moves explained");
-    if (parsedResult.data.badContinuation) {
-      parsedResult.data.badContinuation.forEach((c, idx) => {
-        console.log(`  ${idx + 1}. ${c.move}: ${c.reason}`);
-      });
-    }
-    console.log("\nBest continuation:", parsedResult.data.bestContinuation?.length || 0, "moves explained");
-    if (parsedResult.data.bestContinuation) {
-      parsedResult.data.bestContinuation.forEach((c, idx) => {
-        console.log(`  ${idx + 1}. ${c.move}: ${c.reason}`);
-      });
-    }
+    console.log("\nBad continuation:", parsedResult.data.badContinuation.length, "moves explained");
+    parsedResult.data.badContinuation.forEach((c, idx) => {
+      console.log(`  ${idx + 1}. ${c.move}: ${c.reason}`);
+    });
+    console.log("\nBest continuation:", parsedResult.data.bestContinuation.length, "moves explained");
+    parsedResult.data.bestContinuation.forEach((c, idx) => {
+      console.log(`  ${idx + 1}. ${c.move}: ${c.reason}`);
+    });
     console.log("=".repeat(80) + "\n");
 
     return res.status(200).json(parsedResult.data);
