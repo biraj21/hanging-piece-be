@@ -1,5 +1,5 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { generateText } from "ai";
+import { generateText, Output } from "ai";
 import { Router, type Request, type Response } from "express";
 import { z } from "zod";
 
@@ -110,17 +110,6 @@ Rules:
 - ONLY explain what Stockfish calculated - you are a TRANSLATOR, not a chess engine
 `.trim();
 
-function stripCodeFences(text: string): string {
-  const trimmed = text.trim();
-  if (trimmed.startsWith("```")) {
-    const fenceEnd = trimmed.indexOf("```", 3);
-    if (fenceEnd !== -1) {
-      return trimmed.slice(trimmed.indexOf("\n") + 1, fenceEnd).trim();
-    }
-  }
-  return trimmed;
-}
-
 const googleProvider = createGoogleGenerativeAI({
   apiKey: env.GEMINI_API_KEY,
 });
@@ -216,10 +205,11 @@ router.post("/explain", requireAuth, async (req: Request, res: Response) => {
     console.log(userPrompt);
     console.log("=".repeat(80) + "\n");
 
-    const structuredResult = await generateText({
+    const { output } = await generateText({
       model: googleProvider(MODELS.GEMINI_3_FLASH_PREVIEW),
       system: systemPrompt,
       prompt: userPrompt,
+      output: Output.object({ schema: explainResponseSchema }),
       maxRetries: 2,
       temperature: 1, // https://ai.google.dev/gemini-api/docs/gemini-3#temperature
       providerOptions: {
@@ -232,29 +222,22 @@ router.post("/explain", requireAuth, async (req: Request, res: Response) => {
       },
     });
 
-    const cleanedText = stripCodeFences(structuredResult.text);
-    const parsedJson = JSON.parse(cleanedText);
-    const parsedResult = explainResponseSchema.safeParse(parsedJson);
-    if (!parsedResult.success) {
-      return res.status(500).json({ error: "LLM returned invalid format", details: parsedResult.error.issues });
-    }
-
     // Log the response
     console.log("\n" + "=".repeat(80));
     console.log("✅ LLM RESPONSE:");
     console.log("=".repeat(80));
-    console.log("Explanation:", parsedResult.data.explanation);
-    console.log("\nBad continuation:", parsedResult.data.badContinuation.length, "moves explained");
-    parsedResult.data.badContinuation.forEach((c, idx) => {
+    console.log("Explanation:", output.explanation);
+    console.log("\nBad continuation:", output.badContinuation.length, "moves explained");
+    output.badContinuation.forEach((c, idx) => {
       console.log(`  ${idx + 1}. ${c.move}: ${c.reason}`);
     });
-    console.log("\nBest continuation:", parsedResult.data.bestContinuation.length, "moves explained");
-    parsedResult.data.bestContinuation.forEach((c, idx) => {
+    console.log("\nBest continuation:", output.bestContinuation.length, "moves explained");
+    output.bestContinuation.forEach((c, idx) => {
       console.log(`  ${idx + 1}. ${c.move}: ${c.reason}`);
     });
     console.log("=".repeat(80) + "\n");
 
-    return res.status(200).json(parsedResult.data);
+    return res.status(200).json(output);
   } catch (err) {
     console.error("Explain route error", err);
     return res.status(500).json({ error: "Failed to generate explanation" });
