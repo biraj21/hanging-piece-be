@@ -3,11 +3,11 @@ module.exports = {
     {
       name: "hanging-piece-backend",
       script: "dist/index.js",
-      instances: 2,
+      instances: 1,
       exec_mode: "cluster",
 
       // Memory management
-      max_memory_restart: "1G",
+      max_memory_restart: "3G",
 
       // Logging - files for persistence, PM2 monitor for real-time
       merge_logs: true,
