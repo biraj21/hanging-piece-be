@@ -4,6 +4,7 @@ import express from "express";
 
 import { auth } from "#src/config/auth";
 import { env } from "#src/config/env";
+import chesscomRouter from "#src/routes/chess-com";
 import explainRouter from "#src/routes/explain";
 import userRouter from "#src/routes/user";
 import { printRoutes } from "./utils/express.js";
@@ -44,6 +45,7 @@ app.all("/auth/*splat", toNodeHandler(auth));
 // or only apply it to routes that don't interact with Better Auth
 app.use(express.json());
 
+app.use("/chesscom", chesscomRouter);
 app.use(explainRouter);
 app.use(userRouter);
 
