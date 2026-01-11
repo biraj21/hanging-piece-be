@@ -68,10 +68,72 @@ CRITICAL INSTRUCTIONS:
 5. Do NOT suggest alternative variations or calculate additional moves
 6. If userColor is provided, personalize your explanations using "you/your" for the user's moves and "opponent" for their opponent's moves
 
+⚠️ CHECK NOTATION RULE - READ CAREFULLY:
+- A move gives CHECK if and only if the SAN ends with "+" (e.g., "Qf7+", "Rxe8+")
+- A move is CHECKMATE if and only if the SAN ends with "#" (e.g., "Qf7#", "Rd1#")
+- If a move does NOT have "+" or "#" at the end, it does NOT give check - DO NOT claim it does!
+- Examples:
+  - "Qf7+" = gives check ✓
+  - "Qf7" = does NOT give check (no + symbol)
+  - "Rd1#" = checkmate ✓
+  - "Rd1" = does NOT give check or mate
+- Before writing "gives check" or "with check", VERIFY the move has "+" in its SAN notation
+
+⚠️ EVERY MOVE HAS A PURPOSE - EXPLAIN THE "WHY":
+Every chess move is played for a reason. Your job is to explain that reason for EVERY move. Ask yourself: "Why did they play this move?"
+
+Moves generally serve one or more of these purposes:
+1. THREATS: Attacking an enemy piece, threatening mate, or setting up a tactic
+   - "Qd3 threatens Qxh7 mate"
+   - "Nc4 attacks the queen on e5"
+   - "Rd1 targets the undefended bishop on d5"
+
+2. CAPTURES: Taking material (SAN contains "x")
+   - "Bxe5 wins the knight"
+   - "Qxf7+ captures the pawn with check"
+
+3. DEFENSE: Protecting a piece, blocking an attack, or escaping a threat
+   - "Kh8 moves the king out of the dangerous g-file"
+   - "Be7 blocks the check"
+   - "Nf6 defends the h7 pawn"
+
+4. POSITIONAL IMPROVEMENT: Better piece placement, controlling key squares, improving pawn structure
+   - "Rd1 controls the open d-file"
+   - "Nf5 reaches an outpost where it can't be attacked by pawns"
+   - "c4 gains space in the center"
+
+5. FORCING MOVES: Moves that limit the opponent's options
+   - "Qf7+ forces the king to h8"
+   - "e5 kicks the knight - it must move"
+
+⚠️ ANALYZE THREATS AFTER EACH MOVE - USE THE FEN:
+After EVERY move, look at the "afterFen" to identify ALL new threats created:
+
+1. Find the piece that just moved (from the SAN) and its destination square
+2. Look at the afterFen and identify what enemy pieces are now under attack
+3. List ALL threats, not just the most obvious one
+
+How to analyze threats from FEN:
+- Queens attack on ranks, files, and diagonals - check all 8 directions
+- Rooks attack on ranks and files - check 4 directions  
+- Bishops attack on diagonals - check 4 diagonal directions
+- Knights attack in L-shapes - check all 8 knight squares
+- Pawns attack diagonally forward
+
+Example: If "Qxg3" and the afterFen shows the queen on g3 with a bishop on e5 and king on g1:
+- The queen on g3 attacks diagonally toward e5 (threatening the bishop)
+- The queen on g3 attacks down the g-file toward g1 (near the king)
+- CORRECT explanation: "Qxg3 captures the pawn AND threatens your bishop on e5"
+
+DON'T just describe the capture - describe ALL the new threats created by the move's destination square!
+
+If a move SETS UP a later capture/tactic, connect the dots:
+- "Qd3 threatens Qxh7 mate. Since Black plays Kh8 (which doesn't stop the threat), White delivers Qxh7#"
+
 EXPLANATION STYLE - BE CONCRETE AND VISUAL:
 - For every move, use the before/after FENs to describe exactly what changed on the board
 - For threats: Clearly state WHAT piece on WHAT square threatens WHAT. Example: "Your rook on g4 can now capture their queen on g7"
-- For captures: Always explain the full consequence. Example: "After Qxf7, their queen takes your f7 pawn, but now your rook on f1 captures their queen on f7 - you win the queen for just a pawn"
+- For captures: Always explain the full consequence AND any new threats. Example: "Qxg3 captures your pawn, but now the queen also threatens your bishop on e5"
 - Use explicit square references: "the knight on c3" not just "the knight"
 - Describe the board geometry when relevant: "the diagonal from b2 to g7" or "the open e-file"
 - Make cause-and-effect crystal clear: "Because the king moved to h1, the back rank is now undefended, allowing Rd1 checkmate"
@@ -100,9 +162,9 @@ Respond in valid JSON (no markdown, no code fences):
 }
 
 Rules:
-- "explanation": 2-4 sentences answering: (1) WHY was the bad move bad? Be concrete - was it a hanging piece, walking into a tactic, losing material, missing a winning opportunity, weakening the king, etc.? (2) WHY was the best move better? What problem does it avoid or what advantage does it create? Example: "Qxb3 loses the queen - after Rxb3, your opponent simply captures it and you get nothing in return. Instead, d3 advances your passed pawn to the 3rd rank, threatening promotion and keeping pressure on your opponent."
-- "badContinuation": For EACH move, explain concretely what's happening. Name pieces and squares. Show the cause-and-effect.
-- "bestContinuation": For EACH move, explain what it achieves or prevents, with specific squares and pieces
+- "explanation": 2-4 sentences answering: (1) WHY was the bad move bad? Be concrete - was it a hanging piece, walking into a tactic, losing material, missing a winning opportunity, weakening the king, etc.? (2) WHY was the best move better? What problem does it avoid or what advantage does it create?
+- "badContinuation": For EACH move, explain its PURPOSE and ALL THREATS it creates - analyze the afterFen to find every piece now under attack
+- "bestContinuation": For EACH move, explain its PURPOSE and any threats created or neutralized
 - Reference the FEN positions to stay accurate - verify which pieces are actually on which squares before explaining
 - Be hyper-specific: "your rook on e8 captures their queen on e1" not "rook takes queen"
 - Name tactics explicitly when relevant: fork, pin, skewer, discovered attack, back rank weakness, trapped piece, etc.
