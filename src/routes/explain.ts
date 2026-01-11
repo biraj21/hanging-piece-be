@@ -4,7 +4,6 @@ import { Router, type Request, type Response } from "express";
 import { z } from "zod";
 
 import { env } from "#src/config/env";
-import { requireAuth } from "#src/middlewares/auth";
 
 const router = Router();
 
@@ -114,7 +113,8 @@ const googleProvider = createGoogleGenerativeAI({
   apiKey: env.GEMINI_API_KEY,
 });
 
-router.post("/explain", requireAuth, async (req: Request, res: Response) => {
+// router.post("/explain", requireAuth, async (req: Request, res: Response) => {
+router.post("/explain", async (req: Request, res: Response) => {
   //  const authReq = req as AuthenticatedRequest;
 
   const parsed = explainRequestSchema.safeParse(req.body);
