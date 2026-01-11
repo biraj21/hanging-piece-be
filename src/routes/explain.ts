@@ -68,87 +68,54 @@ CRITICAL INSTRUCTIONS:
 5. Do NOT suggest alternative variations or calculate additional moves
 6. If userColor is provided, personalize your explanations using "you/your" for the user's moves and "opponent" for their opponent's moves
 
-⚠️ CHECK NOTATION RULE - READ CAREFULLY:
-- A move gives CHECK if and only if the SAN ends with "+" (e.g., "Qf7+", "Rxe8+")
-- A move is CHECKMATE if and only if the SAN ends with "#" (e.g., "Qf7#", "Rd1#")
-- If a move does NOT have "+" or "#" at the end, it does NOT give check - DO NOT claim it does!
-- Examples:
-  - "Qf7+" = gives check ✓
-  - "Qf7" = does NOT give check (no + symbol)
-  - "Rd1#" = checkmate ✓
-  - "Rd1" = does NOT give check or mate
-- Before writing "gives check" or "with check", VERIFY the move has "+" in its SAN notation
+⚠️ CHECK NOTATION RULE:
+- A move gives CHECK only if SAN ends with "+"
+- A move is CHECKMATE only if SAN ends with "#"
+- No "+" or "#" = no check. Do NOT claim otherwise.
+
+⚠️ PINS AND SKEWERS - STRICT VERIFICATION:
+DO NOT claim a pin unless you VERIFY all three pieces are on the EXACT SAME LINE.
+
+A PIN requires:
+1. Attacker (bishop/rook/queen)
+2. Pinned piece
+3. Valuable piece DIRECTLY BEHIND on the SAME line
+
+TO VERIFY A DIAGONAL: |file_diff| must equal |rank_diff|
+- Files: a=1, b=2, c=3, d=4, e=5, f=6, g=7, h=8
+
+Example verification:
+- Bishop on g5 attacks knight on f6
+- Is there a pin? Check what's BEHIND f6 on the same diagonal
+- g5→f6 direction: -1 file, +1 rank. Continue: f6→e7→d8
+- Only pieces on e7 or d8 would create a pin
+- A queen on e8 is NOT a pin (f6 to e8: file diff=1, rank diff=2 → NOT same diagonal)
+
+WHEN IN DOUBT: Say "attacks" instead of "pins"
 
 ⚠️ EVERY MOVE HAS A PURPOSE - EXPLAIN THE "WHY":
-Every chess move is played for a reason. Your job is to explain that reason for EVERY move. Ask yourself: "Why did they play this move?"
-
-Moves generally serve one or more of these purposes:
-1. THREATS: Attacking an enemy piece, threatening mate, or setting up a tactic
-   - "Qd3 threatens Qxh7 mate"
-   - "Nc4 attacks the queen on e5"
-   - "Rd1 targets the undefended bishop on d5"
-
+Every chess move is played for a reason:
+1. THREATS: Attacking a piece or threatening mate or causing positional disadvantage
 2. CAPTURES: Taking material (SAN contains "x")
-   - "Bxe5 wins the knight"
-   - "Qxf7+ captures the pawn with check"
+3. DEFENSE: Protecting or escaping
+4. POSITIONAL: Better placement, controlling squares
+5. FORCING: Limiting opponent's options
 
-3. DEFENSE: Protecting a piece, blocking an attack, or escaping a threat
-   - "Kh8 moves the king out of the dangerous g-file"
-   - "Be7 blocks the check"
-   - "Nf6 defends the h7 pawn"
+⚠️ ANALYZE THREATS AFTER EACH MOVE:
+After every move, check the afterFen - what pieces are now under attack from the moved piece's new square? List ALL threats, not just captures.
 
-4. POSITIONAL IMPROVEMENT: Better piece placement, controlling key squares, improving pawn structure
-   - "Rd1 controls the open d-file"
-   - "Nf5 reaches an outpost where it can't be attacked by pawns"
-   - "c4 gains space in the center"
-
-5. FORCING MOVES: Moves that limit the opponent's options
-   - "Qf7+ forces the king to h8"
-   - "e5 kicks the knight - it must move"
-
-⚠️ ANALYZE THREATS AFTER EACH MOVE - USE THE FEN:
-After EVERY move, look at the "afterFen" to identify ALL new threats created:
-
-1. Find the piece that just moved (from the SAN) and its destination square
-2. Look at the afterFen and identify what enemy pieces are now under attack
-3. List ALL threats, not just the most obvious one
-
-How to analyze threats from FEN:
-- Queens attack on ranks, files, and diagonals - check all 8 directions
-- Rooks attack on ranks and files - check 4 directions  
-- Bishops attack on diagonals - check 4 diagonal directions
-- Knights attack in L-shapes - check all 8 knight squares
-- Pawns attack diagonally forward
-
-Example: If "Qxg3" and the afterFen shows the queen on g3 with a bishop on e5 and king on g1:
-- The queen on g3 attacks diagonally toward e5 (threatening the bishop)
-- The queen on g3 attacks down the g-file toward g1 (near the king)
-- CORRECT explanation: "Qxg3 captures the pawn AND threatens your bishop on e5"
-
-DON'T just describe the capture - describe ALL the new threats created by the move's destination square!
-
-If a move SETS UP a later capture/tactic, connect the dots:
-- "Qd3 threatens Qxh7 mate. Since Black plays Kh8 (which doesn't stop the threat), White delivers Qxh7#"
-
-EXPLANATION STYLE - BE CONCRETE AND VISUAL:
-- For every move, use the before/after FENs to describe exactly what changed on the board
-- For threats: Clearly state WHAT piece on WHAT square threatens WHAT. Example: "Your rook on g4 can now capture their queen on g7"
-- For captures: Always explain the full consequence AND any new threats. Example: "Qxg3 captures your pawn, but now the queen also threatens your bishop on e5"
-- Use explicit square references: "the knight on c3" not just "the knight"
-- Describe the board geometry when relevant: "the diagonal from b2 to g7" or "the open e-file"
-- Make cause-and-effect crystal clear: "Because the king moved to h1, the back rank is now undefended, allowing Rd1 checkmate"
-- When material is lost, be explicit: "You lose your queen (9 points) for their rook (5 points) - a net loss of 4 points"
+EXPLANATION STYLE:
+- Use the FENs to verify piece positions
+- Be specific: "knight on c3" not just "the knight"
+- Explain cause-and-effect clearly
+- For material loss, state point values
 
 Task: 
-1. Write a concise overview that: (a) explains WHY the bad move was bad - what's the concrete problem? (b) explains WHY the best move was better - what does it achieve?
-2. Explain EACH move in the bad continuation (showing what goes wrong step by step)
-3. Explain EACH move in the best continuation (showing why it's a better path)
+1. Overview: WHY was bad move bad? WHY was best move better?
+2. Explain EACH move in bad continuation
+3. Explain EACH move in best continuation
 
-⚠️ CRITICAL: You MUST return exactly the same number of moves that were provided:
-- If you receive 5 moves in badContinuation, return explanations for exactly 5 moves
-- If you receive 3 moves in bestContinuation, return explanations for exactly 3 moves
-- Do NOT add moves that weren't provided
-- Do NOT skip moves that were provided
+⚠️ Return exactly the same number of moves provided - no more, no less.
 
 Respond in valid JSON (no markdown, no code fences):
 {
@@ -160,15 +127,6 @@ Respond in valid JSON (no markdown, no code fences):
     { "move": string, "color": "white" | "black", "reason": string }
   ]
 }
-
-Rules:
-- "explanation": 2-4 sentences answering: (1) WHY was the bad move bad? Be concrete - was it a hanging piece, walking into a tactic, losing material, missing a winning opportunity, weakening the king, etc.? (2) WHY was the best move better? What problem does it avoid or what advantage does it create?
-- "badContinuation": For EACH move, explain its PURPOSE and ALL THREATS it creates - analyze the afterFen to find every piece now under attack
-- "bestContinuation": For EACH move, explain its PURPOSE and any threats created or neutralized
-- Reference the FEN positions to stay accurate - verify which pieces are actually on which squares before explaining
-- Be hyper-specific: "your rook on e8 captures their queen on e1" not "rook takes queen"
-- Name tactics explicitly when relevant: fork, pin, skewer, discovered attack, back rank weakness, trapped piece, etc.
-- ONLY explain what Stockfish calculated - you are a TRANSLATOR, not a chess engine
 `.trim();
 
 const googleProvider = createGoogleGenerativeAI({
