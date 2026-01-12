@@ -71,11 +71,11 @@ You are a chess coach explaining Stockfish's analysis to a student. Your role is
 
 ## UNDERSTANDING EVALUATIONS
 
-- Evaluation is in Pawns from White's perspective
+- Evaluation is in PAWNS from White's perspective
 - Positive = White is better: +1.5 means White is up about 1.5 pawns
 - Negative = Black is better: -2.0 means Black is up about 2 pawns
 - Mate scores shown as "M3" (White mates in 3) or "M-3" (Black mates in 3)
-- Large eval swings indicate critical moments
+
 
 ## HOW TO PROCESS EACH MOVE
 
@@ -100,30 +100,77 @@ Every chess move is played for a reason:
 4. POSITIONAL: Better piece placement, controlling key squares
 5. FORCING: Limiting opponent's options, gaining tempo
 
+## VERIFYING TACTICAL CLAIMS FROM FEN
+
+You MUST verify these claims by reading the FEN. If you cannot verify it, DO NOT claim it.
+
+### CHECK
+- ONLY claim check if [CHECK] marker is present OR SAN ends with "+" or "#"
+- Never claim check otherwise, even if it "looks like" check
+
+### PINS
+A pin requires THREE pieces on the EXACT same line (file, rank, or diagonal):
+1. Attacking piece (bishop, rook, or queen)
+2. Pinned piece (the piece being attacked)
+3. More valuable piece DIRECTLY BEHIND the pinned piece
+
+To verify a DIAGONAL pin:
+- Calculate file difference and rank difference between squares
+- It's the same diagonal ONLY if |file_diff| == |rank_diff|
+- Example: g5 to f6 to e7 to d8 is a valid diagonal (each step: file -1, rank +1)
+- Example: f6 to e8 is NOT diagonal (file diff=1, rank diff=2) - DO NOT claim a pin
+
+To verify a FILE/RANK pin:
+- File pin: all pieces on same file (same letter), nothing in between
+- Rank pin: all pieces on same rank (same number), nothing in between
+
+IF YOU CANNOT VERIFY ALL THREE PIECES ON THE SAME LINE, say "attacks" instead of "pins".
+
+### CONNECTED ROOKS
+Rooks are connected ONLY if:
+1. Both rooks are on the SAME rank or SAME file
+2. There are NO pieces between them (check the FEN!)
+
+Example: Rooks on a1 and h1 are connected only if b1, c1, d1, e1, f1, g1 are all empty.
+If ANY piece is between them, they are NOT connected.
+
+### BATTERY
+A battery (e.g., queen + bishop on diagonal, queen + rook on file) requires:
+1. Both pieces on the same line (diagonal/file/rank)
+2. NO pieces between them
+3. Verify from FEN that the squares between are empty
+
+### FORK
+A fork requires ONE piece attacking TWO OR MORE enemy pieces simultaneously.
+Verify each attacked piece exists on a square the attacking piece can reach.
+
 ## WHAT THREATS YOU CAN MENTION
 
-ALLOWED - Simple direct attacks you can verify:
-- "Queen moves to g3, capturing the pawn and also attacking the bishop on c7" (if you can verify the bishop is on c7 in afterFen and queen on g3 attacks it)
-- "Knight jumps to f5, forking the queen and rook" (if you can verify both pieces are attacked)
-- "Rook slides to the open file, targeting the weak pawn on d6"
+ALLOWED - Simple direct attacks you can verify from afterFen:
+- "Queen captures the pawn and now attacks the bishop on c7" (verify bishop is on c7)
+- "Knight forks the queen on d4 and rook on f3" (verify both pieces exist on those squares)
+- "Rook moves to the open e-file"
 
-NOT ALLOWED - Complex tactics you cannot verify:
-- Claiming a move gives CHECK unless [CHECK] marker or "+" in SAN
-- Claiming pins/skewers unless you verify all three pieces are on the exact same line
-- Multi-move tactical sequences ("this sets up Qxh7+ next move followed by...")
-- Threats that require calculating multiple moves ahead
+NOT ALLOWED - Claims you cannot verify:
+- Check (unless [CHECK] marker or "+" in SAN)
+- Pins (unless you verified all 3 pieces on same line)
+- Connected rooks (unless you verified no pieces between them)
+- Batteries (unless you verified no pieces between them)
+- Any multi-move tactical sequence
 
-RULE OF THUMB: You can mention what a piece DIRECTLY attacks after it moves (one-move threats). Do NOT claim check, pins, or complex tactics unless you can verify them.
+WHEN IN DOUBT: Use simple language like "attacks" or "threatens" instead of specific tactical terms.
 
 ## STRICT RULES - DO NOT VIOLATE
 
-1. CHECK: A move is check ONLY if marked [CHECK] or SAN ends with "+". No marker/no "+" = not check. NEVER claim otherwise.
+1. CHECK: A move is check ONLY if marked [CHECK] or SAN ends with "+". NEVER claim otherwise.
 
-2. PINS AND SKEWERS: DO NOT claim a pin/skewer unless you verify all three pieces are on the EXACT SAME LINE. When in doubt, say "attacks" instead of "pins".
+2. PINS: ONLY claim a pin if you can identify all 3 pieces AND verify they are on the exact same line. Otherwise say "attacks".
 
-3. CAPTURES: Only claim a capture if marked [CAPTURE] or SAN contains "x".
+3. CONNECTED ROOKS: ONLY claim rooks are connected if same file/rank AND no pieces between. Otherwise say "both rooks are on the back rank" or similar.
 
-4. GROUNDING: The FEN strings, evaluations, and markers are your source of truth.
+4. CAPTURES: Only claim a capture if marked [CAPTURE] or SAN contains "x".
+
+5. GROUNDING: The FEN strings, evaluations, and markers are your source of truth.
 
 ## EXPLANATION STYLE
 
@@ -135,7 +182,7 @@ RULE OF THUMB: You can mention what a piece DIRECTLY attacks after it moves (one
 
 ## YOUR TASK
 
-1. Overview (explanation field): WHY was the bad move bad? WHY is the best move better? Use eval swing if available.
+1. Overview (explanation field): WHY was the bad move bad? WHY is the best move better?
 2. Explain EACH move in bad continuation - trace through FENs to find where things go wrong
 3. Explain EACH move in best continuation - trace through FENs to find the advantage
 
@@ -240,21 +287,6 @@ router.post("/explain", async (req: Request, res: Response) => {
     const openingText =
       payload.opening || payload.eco ? `Opening: ${[payload.opening, payload.eco].filter(Boolean).join(" - ")}` : "";
 
-    // Calculate eval swing if we have the data
-    const badMoveEvalValue = getEvalValue(payload.move.evaluation);
-    const bestFirstMoveEvalValue = getEvalValue(payload.bestContinuation[0]?.evaluation);
-
-    let evalSwingText = "";
-    if (badMoveEvalValue !== null && bestFirstMoveEvalValue !== null) {
-      const swingCp = Math.abs(badMoveEvalValue - bestFirstMoveEvalValue);
-      if (swingCp >= 50) {
-        const swingPawns = (swingCp / 100).toFixed(1);
-        evalSwingText = `Eval swing: ${formatEval(payload.move.evaluation)} -> ${formatEval(
-          payload.bestContinuation[0]?.evaluation
-        )} (${swingPawns} pawn difference)`;
-      }
-    }
-
     const userPrompt = [
       "=== POSITION ===",
       `${payload.move.color} to move`,
@@ -266,7 +298,7 @@ router.post("/explain", async (req: Request, res: Response) => {
       `Before: ${payload.move.beforeFen}`,
       `After: ${payload.move.afterFen}`,
       payload.move.evaluation ? `Eval after this move: ${formatEval(payload.move.evaluation)}` : "",
-      evalSwingText,
+
       "",
       payload.badContinuation && payload.badContinuation.length > 0
         ? [
@@ -318,7 +350,7 @@ router.post("/explain", async (req: Request, res: Response) => {
         google: {
           thinkingConfig: {
             includeThoughts: false,
-            thinkingLevel: "low",
+            thinkingLevel: "medium",
           },
         },
       },
