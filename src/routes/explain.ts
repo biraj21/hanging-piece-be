@@ -4,6 +4,7 @@ import { Router, type Request, type Response } from "express";
 import { z } from "zod";
 
 import { env } from "#src/config/env";
+import { requireAuth } from "#src/middlewares/auth";
 
 const router = Router();
 
@@ -293,7 +294,7 @@ const formatMove = (m: z.infer<typeof moveSchema>, idx: number): string => {
   ].join("\n");
 };
 
-router.post("/explain", async (req: Request, res: Response) => {
+router.post("/explain", requireAuth, async (req: Request, res: Response) => {
   const parsed = explainRequestSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ error: "Invalid payload", details: parsed.error.issues });
