@@ -11,6 +11,7 @@ const router = Router();
 const MODELS = {
   GEMINI_3_PRO_PREVIEW: "gemini-3-pro-preview",
   GEMINI_3_FLASH_PREVIEW: "gemini-3-flash-preview",
+  GEMINI_2_5_PRO: "gemini-2.5-pro",
 };
 
 // Evaluation can be either centipawn or mate
@@ -366,7 +367,7 @@ router.post("/explain", requireAuth, async (req: Request, res: Response) => {
     console.log("=".repeat(80) + "\n");
 
     const { output } = await generateText({
-      model: googleProvider(MODELS.GEMINI_3_FLASH_PREVIEW),
+      model: googleProvider(MODELS.GEMINI_2_5_PRO),
       system: systemPrompt,
       prompt: userPrompt,
       output: Output.object({ schema: explainResponseSchema }),
@@ -376,7 +377,7 @@ router.post("/explain", requireAuth, async (req: Request, res: Response) => {
         google: {
           thinkingConfig: {
             includeThoughts: false,
-            thinkingLevel: "medium",
+            // thinkingLevel: "medium",
           },
         },
       },
