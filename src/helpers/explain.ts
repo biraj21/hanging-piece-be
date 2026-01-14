@@ -4,11 +4,11 @@ import { z } from "zod";
 
 import { env } from "#src/config/env";
 
-const MODELS = {
+export const MODELS = {
   GEMINI_3_PRO_PREVIEW: "gemini-3-pro-preview",
   GEMINI_3_FLASH_PREVIEW: "gemini-3-flash-preview",
   GEMINI_2_5_PRO: "gemini-2.5-pro",
-};
+} as const;
 
 const evaluationSchema = z.union([z.object({ cp: z.number() }), z.object({ mate: z.number() })]);
 
@@ -338,17 +338,17 @@ export async function generateExplanation(payload: ExplainRequest): Promise<Expl
   console.log("=".repeat(80) + "\n");
 
   const { output } = await generateText({
-    model: googleProvider(MODELS.GEMINI_2_5_PRO),
+    model: googleProvider(MODELS.GEMINI_3_FLASH_PREVIEW),
     system: systemPrompt,
     prompt: userPrompt,
     output: Output.object({ schema: explainResponseSchema }),
-    maxRetries: 2,
+    maxRetries: 1,
     temperature: 1, // https://ai.google.dev/gemini-api/docs/gemini-3#temperature
     providerOptions: {
       google: {
         thinkingConfig: {
           includeThoughts: false,
-          // thinkingLevel: "medium",
+          thinkingLevel: "medium",
         },
       },
     },
