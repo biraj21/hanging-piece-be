@@ -48,6 +48,7 @@ router.post("/explain/try", async (req: Request, res: Response) => {
     return res.status(200).json(output);
   } catch (err) {
     console.error("Explain/try route error", err);
+    rateLimitCache.delete(clientIp); // delete cache on error to allow retry
     return res.status(500).json({ error: "Failed to generate explanation" });
   }
 });
