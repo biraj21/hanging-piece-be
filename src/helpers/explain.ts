@@ -35,23 +35,48 @@ export const explainRequestSchema = z.object({
 export type ExplainRequest = z.infer<typeof explainRequestSchema>;
 
 const explainResponseSchema = z.object({
-  explanation: z.string(),
   badContinuation: z
     .array(
       z.object({
-        move: z.string(),
+        move: z.string().describe("Move in SAN notation"),
         color: z.enum(["white", "black"]),
-        reason: z.string(),
-      })
+        reason: z
+          .string()
+          .describe(
+            "ONE or TWO concise sentences explaining this move. " +
+              "Always include the immediate tactical consequence (what happens right now: attacks, captures, threats, checks). " +
+              "If there's also a positional/strategic idea visible from the FEN (improved pawn structure, piece activity, " +
+              "king safety, endgame preparation, controlling key squares), include that too. " +
+              "If it's just a simple capture or check with no deeper plan, that's fine - just explain what it does.",
+          ),
+      }),
     )
-    .optional(),
-  bestContinuation: z.array(
-    z.object({
-      move: z.string(),
-      color: z.enum(["white", "black"]),
-      reason: z.string(),
-    })
-  ),
+    .optional()
+    .describe("Step-by-step explanations for each move in the bad continuation, if provided."),
+  bestContinuation: z
+    .array(
+      z.object({
+        move: z.string().describe("Move in SAN notation"),
+        color: z.enum(["white", "black"]),
+        reason: z
+          .string()
+          .describe(
+            "ONE or TWO concise sentences explaining this move. " +
+              "Always include the immediate tactical consequence (what happens right now: attacks, captures, threats, checks). " +
+              "If there's also a positional/strategic idea visible from the FEN (improved pawn structure, piece activity, " +
+              "king safety, endgame preparation, controlling key squares), include that too. " +
+              "If it's just a simple capture or check with no deeper plan, that's fine - just explain what it does.",
+          ),
+      }),
+    )
+    .describe("Step-by-step explanations for each move in the best continuation."),
+  explanation: z
+    .string()
+    .describe(
+      "A short 3-4 sentences overview explaining WHY the bad move was bad and WHY the best move is better. " +
+        "Make it crystal clear if this was a MISSED OPPORTUNITY (checkmate, winning material), " +
+        "a DEFENSIVE FAILURE (hung piece, allowed tactic), or BOTH.",
+    ),
 });
 
 export type ExplainResponse = z.infer<typeof explainResponseSchema>;
@@ -213,18 +238,7 @@ DEFENSIVE MISS:
 First analyze each move in both continuations step-by-step.
 Then, based on your move-by-move analysis, write the overview explanation that summarizes WHY the bad move was bad and WHY the best move is better.
 
-## OUTPUT FORMAT
-
 Respond in valid JSON (no markdown, no code fences):
-{
-  "badContinuation": [
-    { "move": string, "color": "white" | "black", "reason": string }
-  ],
-  "bestContinuation": [
-    { "move": string, "color": "white" | "black", "reason": string }
-  ],
-  "explanation": string
-}
 
 Keep each reason in badContinuation & bestContinuation to ONE or TWO concise sentences focused on what ACTUALLY HAPPENS because of that move.
 If no badContinuation is provided, omit that field.
