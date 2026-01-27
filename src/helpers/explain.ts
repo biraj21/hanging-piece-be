@@ -121,12 +121,55 @@ To understand what a move does:
 
 ## EVERY MOVE HAS A PURPOSE - EXPLAIN THE "WHY"
 
-Every chess move is played for a reason:
-1. CAPTURES: Taking material (SAN contains "x" or [CAPTURE] marker)
-2. DIRECT THREATS: Piece moves to a square where it attacks an enemy piece (verify from afterFen)
-3. DEFENSE: Protecting a piece or escaping an attack
-4. POSITIONAL: Better piece placement, controlling key squares
-5. FORCING: Limiting opponent's options, gaining tempo
+Every chess move is played for a reason. Your job is to identify and explain the UNDERLYING STRATEGIC IDEA:
+
+### BASIC MOVE CATEGORIES:
+1. **CAPTURES**: Taking material (SAN contains "x" or [CAPTURE] marker)
+2. **DIRECT THREATS**: Piece moves to attack an enemy piece
+3. **DEFENSE**: Protecting a piece or escaping an attack
+4. **POSITIONAL**: Better piece placement, controlling key squares
+5. **FORCING**: Limiting opponent's options, gaining tempo
+
+### DEEPER STRATEGIC IDEAS TO IDENTIFY:
+
+**COUNTER-ATTACKS (Critical - this is what you're asking about!)**
+When a piece is attacked, the natural instinct is to save it. But sometimes the winning idea is to IGNORE the threat and create a BIGGER counter-threat:
+
+- **Favorable exchange**: "Your knight is attacked, but instead of saving it, you attack their rook. After the trades, you win the exchange (rook for knight = +2 points)."
+
+- **Counter-threat tempo**: "Your bishop is hanging, but Qh5+ forces checkmate threats. Your opponent must deal with the mate threat first, giving you time to save the bishop later."
+
+- **Superior attack**: "Your pawn is attacked, but Rxe8+ wins the queen after the forced recapture. You gain 6 points (queen for rook) even after losing the pawn."
+
+**When explaining these counter-attacking moves, ALWAYS explain:**
+1. What piece/threat you're IGNORING
+2. What BIGGER threat you're creating
+3. Why your opponent is FORCED to deal with your threat first
+4. What the NET RESULT is after the sequence
+
+**Example explanations:**
+- BAD: "Knight moves to f6"
+- GOOD: "The knight ignores the pawn attacking it and instead forks the queen and rook on f6. After White captures the knight, Black takes the queen - winning 6 points (queen) for only 3 (knight)."
+
+**INITIATIVE & TEMPO**
+- "This move puts Black in check, forcing them to move their king instead of capturing your hanging rook."
+- "The attack on the queen gains tempo - they must move it, giving you time to develop."
+
+**PIECE COORDINATION**
+- "The rook moves behind the passed pawn, supporting its advance to promotion."
+- "Both bishops now aim at the kingside, doubling the pressure on f7."
+
+**SPACE & CONTROL**
+- "The pawn advance gains space and restricts Black's knight from jumping to d5."
+- "Controlling the e5 square prevents Black's pieces from finding active posts."
+
+**WEAKNESSES**
+- "This move creates a backward pawn on d6 that will be difficult to defend."
+- "The king's escape square h2 is now available, preventing back-rank threats."
+
+**EXCHANGES**
+- "Trading queens simplifies into a winning endgame where your extra pawn will decide."
+- "Avoiding the trade keeps more pieces on the board, maintaining attacking chances."
 
 ## VERIFYING TACTICAL CLAIMS FROM FEN
 
@@ -172,12 +215,22 @@ A battery (e.g., queen + bishop on diagonal, queen + rook on file) requires:
 A fork requires ONE piece attacking TWO OR MORE enemy pieces simultaneously.
 Verify each attacked piece exists on a square the attacking piece can reach.
 
+### FAVORABLE EXCHANGES (NEW - CRITICAL FOR YOUR USE CASE)
+When comparing what gets captured in a sequence:
+1. Count the point value of pieces you lose
+2. Count the point value of pieces you win
+3. State the NET difference clearly
+
+Example: "After Nxe5 Bxe5, you trade your knight (3 points) for their bishop (3 points) - equal trade."
+Example: "After Bxf6 Qxf6 Rxd8+, you lose your bishop (3) but win their rook (5) - gaining +2 points."
+
 ## WHAT THREATS YOU CAN MENTION
 
 ALLOWED - Simple direct attacks you can verify from afterFen:
 - "Queen captures the pawn and now attacks the bishop on c7" (verify bishop is on c7)
 - "Knight forks the queen on d4 and rook on f3" (verify both pieces exist on those squares)
 - "Rook moves to the open e-file"
+- "Your knight is attacked by the pawn, but you ignore it to attack their undefended rook" (counter-attack)
 
 NOT ALLOWED - Claims you cannot verify:
 - Check (unless [CHECK] marker or "+" in SAN)
@@ -200,6 +253,8 @@ WHEN IN DOUBT: Use simple language like "attacks" or "threatens" instead of spec
 
 5. GROUNDING: The FEN strings, evaluations, and markers are your source of truth.
 
+6. STRATEGIC IDEAS: Always explain the IDEA behind a move, not just what piece moved where.
+
 ## EXPLANATION STYLE
 
 - Use the FENs to verify piece positions
@@ -207,6 +262,7 @@ WHEN IN DOUBT: Use simple language like "attacks" or "threatens" instead of spec
 - Explain cause-and-effect clearly
 - For material loss, state point values (pawn=1, knight/bishop=3, rook=5, queen=9)
 - Reference eval changes to show why moves matter
+- **MOST IMPORTANTLY**: Explain the STRATEGIC IDEA - what is this move trying to accomplish?
 
 ### Think in terms of CHESS IDEAS, not just piece movements:
 
@@ -219,42 +275,55 @@ WHEN IN DOUBT: Use simple language like "attacks" or "threatens" instead of spec
 **BAD**: "Rook goes to e1"
 **GOOD**: "The rook seizes the open e-file, putting pressure on Black's backward e6 pawn"
 
+**BAD**: "Bishop takes knight"
+**GOOD**: "Your bishop is hanging, but instead of saving it, you capture their knight - after they recapture your bishop, you've traded pieces equally while their attack fizzles out"
+
+**FOR COUNTER-ATTACKS (YOUR SPECIFIC CASE):**
+**BAD**: "Knight to f6"
+**GOOD**: "Your knight is attacked by the pawn, but you ignore it to fork their queen and rook on f6. After they capture your knight, you take their queen - winning 6 points for only 3. This is called a favorable exchange."
+
 ## YOUR TASK
 
-1. IFF available, then first explain EACH move in bad continuation - trace through FENs to find where things go wrong
+1. IFF available, then first explain EACH move in bad continuation - trace through FENs to find where things go wrong. **Focus on what strategic idea was missed or what tactical shot was allowed.**
 
-2. Explain EACH move in best continuation - trace through FENs to show what should have happened
+2. Explain EACH move in best continuation - trace through FENs to show what should have happened. **Emphasize the IDEA: counter-attacks, favorable exchanges, forcing moves, etc.**
 
 3. Overview (explanation field): Using the reasoning you developed above,
-   - WHY was the bad move bad? What did it allow/lose/miss?
-   - WHY is the best move better? What does it accomplish/win/prevent?
-   - What's the CONSEQUENCE? (evaluation swing from +3 to -2, missed M3, etc.)
+   - WHY was the bad move bad? What strategic idea did it miss? What did it allow/lose?
+   - WHY is the best move better? What IDEA does it implement? What does it accomplish/win/prevent?
+   - What's the CONSEQUENCE? (evaluation swing, material count, missed opportunities)
 
 The explanation should make it crystal clear:
-- If this was a MISSED OPPORTUNITY (you had checkmate, you could've won material)
-- If this was a DEFENSIVE FAILURE (you hung a piece, allowed a tactic)
+- If this was a MISSED OPPORTUNITY (you had checkmate, you could've won material, you missed a counter-attack)
+- If this was a DEFENSIVE FAILURE (you hung a piece, allowed a tactic, saved a piece when you should've counter-attacked)
 - Or BOTH (you missed a winning move AND played a losing move)
 
 Example explanation patterns:
 
+COUNTER-ATTACK (YOUR SPECIFIC CASE):
+"Your knight was attacked by the pawn, but you should've ignored it and played Nf6+, forking the king and rook. After Kh1 Nxd5, you win the rook (5 points) for your knight (3 points) - a favorable exchange gaining +2. Instead, you retreated the knight to safety, missing this tactical shot completely."
+
 MISSED CHECKMATE:
-"You missed checkmate in 2 with Qh7+. Instead, Nf3 allows Black to escape and the position becomes equal."
+"You missed checkmate in 2 with Qh7+. The idea is to sacrifice the queen to deflect the king, then deliver mate with the rook. Instead, Nf3 allows Black to escape and the position becomes equal."
 
 MISSED CAPTURE + BLUNDER:
-"You missed winning the queen with Bxd8. Instead, Bc4 hangs your own rook to Rxc4, and you lose a full rook (5 points)."
+"You missed winning the queen with Bxd8. The key idea is that their queen is undefended after you capture it. Instead, Bc4 hangs your own rook to Rxc4, and you lose a full rook (5 points)."
 
 TACTICAL OVERSIGHT:
-"Bd3 attacks the knight but hangs your bishop to e4, pinning it to your king. You lose a bishop (3 points). Instead, Nf3 develops safely while defending e5."
+"Bd3 attacks the knight but hangs your bishop to e4, pinning it to your king. You lose a bishop (3 points). Instead, Nf3 develops safely while defending e5 - this multipurpose move both protects your central pawn and develops a piece."
 
 DEFENSIVE MISS:
-"You needed to play Rf1 to defend the back rank. Instead, Qd2 allows Rxc1+ followed by checkmate."
+"You needed to play Rf1 to defend the back rank. The idea is to give your king an escape square while protecting against the checkmate threat. Instead, Qd2 allows Rxc1+ followed by checkmate."
 
-First analyze each move in both continuations step-by-step.
-Then, based on your move-by-move analysis, write the overview explanation that summarizes WHY the bad move was bad and WHY the best move is better.
+FAVORABLE EXCHANGE MISS:
+"Your bishop was attacked, but instead of saving it, you should've played Bxf6, winning their knight. After Qxf6 (forced), you both lost bishops but you also won a knight - gaining +3 points of material. The idea is that when you're attacked, sometimes the best defense is a stronger counter-attack."
 
-Respond in valid JSON (no markdown, no code fences):
+First analyze each move in both continuations step-by-step, identifying the strategic idea.
+Then, based on your move-by-move analysis, write the overview explanation that summarizes WHY the bad move was bad (what idea it missed) and WHY the best move is better (what idea it implements).
 
-Keep each reason in badContinuation & bestContinuation to ONE or TWO concise sentences focused on what ACTUALLY HAPPENS because of that move.
+Respond in valid JSON (no markdown, no code fences)
+
+Keep each reason in badContinuation & bestContinuation to ONE or TWO concise sentences focused on the STRATEGIC IDEA behind the move.
 If no badContinuation is provided, omit that field.
 Return exactly the same number of moves as provided - no more, no less.
 `.trim();
@@ -359,11 +428,11 @@ export async function generateExplanation(payload: ExplainRequest): Promise<Expl
     .filter(Boolean)
     .join("\n");
 
-  console.log("\n" + "=".repeat(80));
-  console.log("SENDING TO LLM:");
-  console.log("=".repeat(80));
-  console.log(userPrompt);
-  console.log("=".repeat(80) + "\n");
+  // console.log("\n" + "=".repeat(80));
+  // console.log("SENDING TO LLM:");
+  // console.log("=".repeat(80));
+  // console.log(userPrompt);
+  // console.log("=".repeat(80) + "\n");
 
   const { output } = await generateText({
     model: googleProvider(MODELS.GEMINI_3_FLASH_PREVIEW),
@@ -376,27 +445,27 @@ export async function generateExplanation(payload: ExplainRequest): Promise<Expl
       google: {
         thinkingConfig: {
           includeThoughts: false,
-          thinkingLevel: "medium",
+          thinkingLevel: "minimal",
         },
       },
     },
   });
 
-  console.log("\n" + "=".repeat(80));
-  console.log("LLM RESPONSE:");
-  console.log("=".repeat(80));
-  console.log("Explanation:", output.explanation);
-  if (output.badContinuation) {
-    console.log("\nBad continuation:", output.badContinuation.length, "moves");
-    output.badContinuation.forEach((c, idx) => {
-      console.log(`  ${idx + 1}. ${c.move}: ${c.reason}`);
-    });
-  }
-  console.log("\nBest continuation:", output.bestContinuation.length, "moves");
-  output.bestContinuation.forEach((c, idx) => {
-    console.log(`  ${idx + 1}. ${c.move}: ${c.reason}`);
-  });
-  console.log("=".repeat(80) + "\n");
+  // console.log("\n" + "=".repeat(80));
+  // console.log("LLM RESPONSE:");
+  // console.log("=".repeat(80));
+  // console.log("Explanation:", output.explanation);
+  // if (output.badContinuation) {
+  //   console.log("\nBad continuation:", output.badContinuation.length, "moves");
+  //   output.badContinuation.forEach((c, idx) => {
+  //     console.log(`  ${idx + 1}. ${c.move}: ${c.reason}`);
+  //   });
+  // }
+  // console.log("\nBest continuation:", output.bestContinuation.length, "moves");
+  // output.bestContinuation.forEach((c, idx) => {
+  //   console.log(`  ${idx + 1}. ${c.move}: ${c.reason}`);
+  // });
+  // console.log("=".repeat(80) + "\n");
 
   return output;
 }
