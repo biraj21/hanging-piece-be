@@ -30,6 +30,7 @@ export const explainRequestSchema = z.object({
   opening: z.string().optional(),
   eco: z.string().optional(),
   additionalContext: z.string().optional(),
+  userElo: z.number().optional(),
 });
 
 export type ExplainRequest = z.infer<typeof explainRequestSchema>;
@@ -74,9 +75,12 @@ const explainResponseSchema = z.object({
   explanation: z
     .string()
     .describe(
-      "A short 3-4 sentences overview explaining WHY the bad move was bad and WHY the best move is better. " +
-        "Make it crystal clear if this was a MISSED OPPORTUNITY (checkmate, winning material), " +
-        "a DEFENSIVE FAILURE (hung piece, allowed tactic), or BOTH.",
+      "Write EXACTLY 4 labeled lines in this order:\n" +
+        "Hook: One punchy sentence - what went wrong or what was missed.\n" +
+        "Why this failed: WHY was the bad move bad? What idea did it miss, what did it allow?\n" +
+        "Better plan: WHY is the best move better? What idea does it implement, what does it win/prevent?\n" +
+        "Remember: The takeaway lesson - what's the CONSEQUENCE and what to look for next time?\n" +
+        "Keep each line concise and practical.",
     ),
 });
 
@@ -284,39 +288,38 @@ WHEN IN DOUBT: Use simple language like "attacks" or "threatens" instead of spec
 
 ## YOUR TASK
 
-1. IFF available, then first explain EACH move in bad continuation - trace through FENs to find where things go wrong. **Focus on what strategic idea was missed or what tactical shot was allowed.**
+1. If provided, explain EACH move in the bad continuation - trace through FENs to find where things go wrong. Focus on what strategic idea was missed or what tactical shot was allowed.
 
-2. Explain EACH move in best continuation - trace through FENs to show what should have happened. **Emphasize the IDEA: counter-attacks, favorable exchanges, forcing moves, etc.**
+2. Explain EACH move in the best continuation - trace through FENs to show what should have happened. Emphasize the IDEA: counter-attacks, favorable exchanges, forcing moves, etc.
 
-3. Overview (explanation field): Using the reasoning you developed above,
-   - WHY was the bad move bad? What strategic idea did it miss? What did it allow/lose?
-   - WHY is the best move better? What IDEA does it implement? What does it accomplish/win/prevent?
-   - What's the CONSEQUENCE? (evaluation swing, material count, missed opportunities)
+3. Write the explanation field as EXACTLY 4 labeled lines:
+   Hook: One punchy sentence - what went wrong or what was missed.
+   Why this failed: WHY was the bad move bad? What idea did it miss, what did it allow?
+   Better plan: WHY is the best move better? What idea does it implement, what does it win/prevent?
+   Remember: The takeaway lesson - what's the consequence and what to look for next time?
 
-The explanation should make it crystal clear:
-- If this was a MISSED OPPORTUNITY (you had checkmate, you could've won material, you missed a counter-attack)
-- If this was a DEFENSIVE FAILURE (you hung a piece, allowed a tactic, saved a piece when you should've counter-attacked)
-- Or BOTH (you missed a winning move AND played a losing move)
+   Make it crystal clear whether this was a MISSED OPPORTUNITY (checkmate, winning material, missed counter-attack), a DEFENSIVE FAILURE (hung a piece, allowed a tactic), or BOTH.
+   Keep language concrete and easy to visualize. Prefer short sentences and minimal jargon.
 
-Example explanation patterns:
+   Examples:
 
-COUNTER-ATTACK (YOUR SPECIFIC CASE):
-"Your knight was attacked by the pawn, but you should've ignored it and played Nf6+, forking the king and rook. After Kh1 Nxd5, you win the rook (5 points) for your knight (3 points) - a favorable exchange gaining +2. Instead, you retreated the knight to safety, missing this tactical shot completely."
+   MISSED CHECKMATE:
+   Hook: You had checkmate in 2 with Qh7+ but missed it.
+   Why this failed: Nf3 ignored the mating pattern entirely - the queen and rook were already lined up for a kill.
+   Better plan: Qh7+ deflects the king, then the rook delivers mate. The queen sacrifice forces it.
+   Remember: When your pieces are aimed at the king, look for forcing moves before anything else.
 
-MISSED CHECKMATE:
-"You missed checkmate in 2 with Qh7+. The idea is to sacrifice the queen to deflect the king, then deliver mate with the rook. Instead, Nf3 allows Black to escape and the position becomes equal."
+   BLUNDER - HUNG PIECE:
+   Hook: Bc4 hung your rook for free.
+   Why this failed: Moving the bishop left the rook on c1 undefended with no escape square.
+   Better plan: Nf3 develops safely and defends e5 - no loose pieces, no free gifts.
+   Remember: Before every move, ask if you're leaving anything undefended.
 
-MISSED CAPTURE + BLUNDER:
-"You missed winning the queen with Bxd8. The key idea is that their queen is undefended after you capture it. Instead, Bc4 hangs your own rook to Rxc4, and you lose a full rook (5 points)."
-
-TACTICAL OVERSIGHT:
-"Bd3 attacks the knight but hangs your bishop to e4, pinning it to your king. You lose a bishop (3 points). Instead, Nf3 develops safely while defending e5 - this multipurpose move both protects your central pawn and develops a piece."
-
-DEFENSIVE MISS:
-"You needed to play Rf1 to defend the back rank. The idea is to give your king an escape square while protecting against the checkmate threat. Instead, Qd2 allows Rxc1+ followed by checkmate."
-
-FAVORABLE EXCHANGE MISS:
-"Your bishop was attacked, but instead of saving it, you should've played Bxf6, winning their knight. After Qxf6 (forced), you both lost bishops but you also won a knight - gaining +3 points of material. The idea is that when you're attacked, sometimes the best defense is a stronger counter-attack."
+   MISSED COUNTER-ATTACK:
+   Hook: Your knight was attacked, but the real winning move was to ignore it.
+   Why this failed: Retreating the knight to safety let your opponent off the hook completely.
+   Better plan: Nf6 forks the queen and rook - after they take your knight, you take their queen (+3 points net).
+   Remember: When you're attacked, always check if a counter-threat wins more than simply defending.
 
 First analyze each move in both continuations step-by-step, identifying the strategic idea.
 Then, based on your move-by-move analysis, write the overview explanation that summarizes WHY the bad move was bad (what idea it missed) and WHY the best move is better (what idea it implements).
@@ -379,13 +382,24 @@ export async function generateExplanation(payload: ExplainRequest): Promise<Expl
       }'s moves.`
     : "";
 
+  const eloContextText = payload.userElo
+    ? `User's skill level: ${payload.userElo} ELO. ${
+        payload.userElo < 1200
+          ? "Beginner level - explain concepts simply, focus on basic patterns like checks, captures, and simple attacks. Be empathetic and encouraging. Chess improvement takes time."
+          : payload.userElo < 1600
+            ? "Intermediate level - can discuss standard tactical patterns and opening principles. Assume they understand basic chess concepts."
+            : "Advanced level - explain nuanced positional ideas, deep strategic concepts, and multi-move calculations. Push them to study specific weaknesses."
+      }`
+    : "";
+
   const openingText =
     payload.opening || payload.eco ? `Opening: ${[payload.opening, payload.eco].filter(Boolean).join(" - ")}` : "";
 
   const userPrompt = [
     "=== POSITION ===",
-    `${payload.move.color} to move`,
+    `${payload.move.color} made the move`,
     userContextText,
+    eloContextText,
     openingText,
     "",
     "=== MOVE PLAYED (THE BAD MOVE) ===",
@@ -415,14 +429,15 @@ export async function generateExplanation(payload: ExplainRequest): Promise<Expl
     "",
     payload.additionalContext ? `=== ADDITIONAL CONTEXT ===\n${payload.additionalContext}\n` : "",
     "=== TASK ===",
-    "1. OVERVIEW: Compare the two lines. Why does the bad move lose advantage? Why is the best move better?",
-    "2. BAD CONTINUATION: Explain each move - what is its purpose? Where does the problem materialize?",
-    "3. BEST CONTINUATION: Explain each move - what is its purpose? What advantage is gained?",
+    "1. OVERVIEW: Compare both lines and explain why the played move fails and why the best move works.",
+    "2. BAD CONTINUATION: Explain each move's purpose and where the damage happens.",
+    "3. BEST CONTINUATION: Explain each move's purpose and what advantage is gained.",
     "",
     "REMINDERS:",
+    "- explanation must be EXACTLY 4 labeled lines: Hook, Why this failed, Better plan, Remember",
     "- Check ONLY if [CHECK] marker present or SAN ends with '+' or '#'",
-    "- You CAN mention direct threats (piece X attacks piece Y) if verifiable from afterFen",
-    "- [CAPTURE] and [CHECK] markers are pre-verified - trust them",
+    "- You can mention direct threats (piece X attacks piece Y) if verifiable from afterFen",
+    "- [CAPTURE] and [CHECK] markers are pre-verified",
     "- Return exactly the same number of moves as provided",
   ]
     .filter(Boolean)
