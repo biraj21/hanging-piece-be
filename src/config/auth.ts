@@ -1,9 +1,9 @@
 import { betterAuth } from "better-auth";
+import { createAuthMiddleware } from "better-auth/api";
 
 import { db } from "#src/config/db";
 import { env } from "#src/config/env";
 import { sendWelcomeEmail } from "#src/helpers/email";
-import { createAuthMiddleware } from "better-auth/plugins";
 
 // const redirectURI = new URL("/auth/callback/google", env.SERVER_URL).toString();
 

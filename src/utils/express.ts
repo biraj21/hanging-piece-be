@@ -44,7 +44,9 @@ export function printRoutes(app: Express.Application) {
   }
 
   // Sort routes by path for better readability
-  const sortedRoutes = Array.from(routeMap.entries()).sort(([a], [b]) => a.localeCompare(b));
+  const sortedRoutes = Array.from(routeMap.entries()).sort(([a], [b]) =>
+    a.localeCompare(b),
+  );
 
   // Print routes with their methods
   sortedRoutes.forEach(([path, methods]) => {

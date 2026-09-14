@@ -12,7 +12,11 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export async function sendWelcomeEmail(userEmail: string, userName: string, isRetry = false) {
+export async function sendWelcomeEmail(
+  userEmail: string,
+  userName: string,
+  isRetry = false,
+) {
   try {
     if (isRetry) {
       console.log("Retrying to send welcome email to:", userEmail);

@@ -1,6 +1,9 @@
 import { Router, type Request, type Response } from "express";
 
-import { explainRequestSchema, generateExplanation } from "#src/helpers/explain";
+import {
+  explainRequestSchema,
+  generateExplanation,
+} from "#src/helpers/explain";
 import { requireAuth } from "#src/middlewares/auth";
 
 const router = Router();
@@ -11,7 +14,9 @@ const RATE_LIMIT_MS = 15 * 60 * 1000;
 router.post("/explain", requireAuth, async (req: Request, res: Response) => {
   const parsed = explainRequestSchema.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json({ error: "Invalid payload", details: parsed.error.issues });
+    return res
+      .status(400)
+      .json({ error: "Invalid payload", details: parsed.error.issues });
   }
 
   try {
@@ -39,7 +44,9 @@ router.post("/explain/try", async (req: Request, res: Response) => {
 
   const parsed = explainRequestSchema.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json({ error: "Invalid payload", details: parsed.error.issues });
+    return res
+      .status(400)
+      .json({ error: "Invalid payload", details: parsed.error.issues });
   }
 
   try {

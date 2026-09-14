@@ -10,7 +10,10 @@ export const MODELS = {
   GEMINI_2_5_PRO: "gemini-2.5-pro",
 } as const;
 
-const evaluationSchema = z.union([z.object({ cp: z.number() }), z.object({ mate: z.number() })]);
+const evaluationSchema = z.union([
+  z.object({ cp: z.number() }),
+  z.object({ mate: z.number() }),
+]);
 
 const moveSchema = z.object({
   san: z.string(),
@@ -23,7 +26,9 @@ const moveSchema = z.object({
 
 export const explainRequestSchema = z.object({
   move: moveSchema,
-  moveQuality: z.enum(["blunder", "mistake", "inaccuracy", "good", "great", "brilliant"]).optional(),
+  moveQuality: z
+    .enum(["blunder", "mistake", "inaccuracy", "good", "great", "brilliant"])
+    .optional(),
   badContinuation: z.array(moveSchema).optional(),
   bestContinuation: z.array(moveSchema).min(1),
   userColor: z.enum(["white", "black"]).optional(),
@@ -62,7 +67,9 @@ const explainResponseSchema = z.object({
       }),
     )
     .optional()
-    .describe("Step-by-step explanations for each move in the bad continuation, if provided."),
+    .describe(
+      "Step-by-step explanations for each move in the bad continuation, if provided.",
+    ),
   bestContinuation: z
     .array(
       z.object({
@@ -71,7 +78,9 @@ const explainResponseSchema = z.object({
         reason: z.string().describe(MOVE_DESCRIPTION),
       }),
     )
-    .describe("Step-by-step explanations for each move in the best continuation."),
+    .describe(
+      "Step-by-step explanations for each move in the best continuation.",
+    ),
   explanation: z
     .string()
     .describe(
@@ -335,20 +344,28 @@ const googleProvider = createGoogleGenerativeAI({
   apiKey: env.GEMINI_API_KEY,
 });
 
-const isMateEval = (eval_: z.infer<typeof evaluationSchema>): eval_ is { mate: number } => {
+const isMateEval = (
+  eval_: z.infer<typeof evaluationSchema>,
+): eval_ is { mate: number } => {
   return "mate" in eval_;
 };
 
-const isCpEval = (eval_: z.infer<typeof evaluationSchema>): eval_ is { cp: number } => {
+const isCpEval = (
+  eval_: z.infer<typeof evaluationSchema>,
+): eval_ is { cp: number } => {
   return "cp" in eval_;
 };
 
-const formatEval = (evaluation: z.infer<typeof evaluationSchema> | undefined): string => {
+const formatEval = (
+  evaluation: z.infer<typeof evaluationSchema> | undefined,
+): string => {
   if (!evaluation) return "unknown";
 
   if (isMateEval(evaluation)) {
     const mate = evaluation.mate;
-    return mate > 0 ? `M${mate} (White mates in ${mate})` : `M${mate} (Black mates in ${Math.abs(mate)})`;
+    return mate > 0
+      ? `M${mate} (White mates in ${mate})`
+      : `M${mate} (Black mates in ${Math.abs(mate)})`;
   }
 
   if (isCpEval(evaluation)) {
@@ -375,7 +392,9 @@ const formatMove = (m: z.infer<typeof moveSchema>, idx: number): string => {
   ].join("\n");
 };
 
-export async function generateExplanation(payload: ExplainRequest): Promise<ExplainResponse> {
+export async function generateExplanation(
+  payload: ExplainRequest,
+): Promise<ExplainResponse> {
   const userContextText = payload.userColor
     ? `You are coaching ${payload.userColor}. Use "you/your" for ${payload.userColor}'s moves, "opponent" for ${
         payload.userColor === "white" ? "black" : "white"
@@ -393,7 +412,9 @@ export async function generateExplanation(payload: ExplainRequest): Promise<Expl
     : "";
 
   const openingText =
-    payload.opening || payload.eco ? `Opening: ${[payload.opening, payload.eco].filter(Boolean).join(" - ")}` : "";
+    payload.opening || payload.eco
+      ? `Opening: ${[payload.opening, payload.eco].filter(Boolean).join(" - ")}`
+      : "";
 
   const userPrompt = [
     "=== POSITION ===",
@@ -406,7 +427,9 @@ export async function generateExplanation(payload: ExplainRequest): Promise<Expl
     `Move: ${payload.move.san} (${payload.moveQuality || "unclassified"})`,
     `Before: ${payload.move.beforeFen}`,
     `After: ${payload.move.afterFen}`,
-    payload.move.evaluation ? `Eval after this move: ${formatEval(payload.move.evaluation)}` : "",
+    payload.move.evaluation
+      ? `Eval after this move: ${formatEval(payload.move.evaluation)}`
+      : "",
 
     "",
     payload.badContinuation && payload.badContinuation.length > 0
@@ -427,7 +450,9 @@ export async function generateExplanation(payload: ExplainRequest): Promise<Expl
     "",
     "Trace through these positions to find what advantage this sequence creates.",
     "",
-    payload.additionalContext ? `=== ADDITIONAL CONTEXT ===\n${payload.additionalContext}\n` : "",
+    payload.additionalContext
+      ? `=== ADDITIONAL CONTEXT ===\n${payload.additionalContext}\n`
+      : "",
     "=== TASK ===",
     "1. OVERVIEW: Compare both lines and explain why the played move fails and why the best move works.",
     "2. BAD CONTINUATION: Explain each move's purpose and where the damage happens.",

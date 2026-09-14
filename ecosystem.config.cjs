@@ -4,7 +4,7 @@ module.exports = {
       name: "hanging-piece-backend",
       script: "dist/index.js",
       instances: 1,
-      exec_mode: "cluster",
+      exec_mode: "fork",
 
       // Memory management
       max_memory_restart: "3G",

@@ -8,7 +8,9 @@ const envSchema = z.object({
   PORT: z.string().transform((val) => Number(val)),
 
   SERVER_URL: z.url(),
-  FRONTEND_ORIGINS: z.array(z.url()).default(["http://localhost:5173", "https://www.hangingpiece.com"]),
+  FRONTEND_ORIGINS: z
+    .array(z.url())
+    .default(["http://localhost:5173", "https://www.hangingpiece.com"]),
 
   GEMINI_API_KEY: z.string().min(1),
 

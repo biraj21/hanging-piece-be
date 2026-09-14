@@ -9,6 +9,8 @@
     "start": "node dist/index.js",
     "build-n-start": "$npm_execpath run build && $npm_execpath run start",
     "dev": "tsx watch --clear-screen=false src/index.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "auth-db-generate": "$npm_execpath run build && npx @better-auth/cli@latest generate --config ./dist/config/auth.js",
     "pm2-start": "mkdir -p logs && $npm_execpath run build && pm2 start ecosystem.config.cjs",
     "pm2-restart": "$npm_execpath run build && pm2 restart ecosystem.config.cjs",
@@ -24,24 +26,26 @@
   "license": "ISC",
   "packageManager": "pnpm@10.28.0",
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
+    "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
-    "@types/node": "^24.10.1",
+    "@types/node": "^26.5.1",
     "@types/nodemailer": "^7.0.5",
-    "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "prettier": "^3.9.6",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2"
   },
   "dependencies": {
-    "@ai-sdk/google": "3.0.10",
-    "@types/cors": "^2.8.19",
-    "ai": "6.0.39",
-    "better-auth": "^1.4.13",
-    "better-sqlite3": "^12.6.0",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
+    "@ai-sdk/google": "4.0.69",
+    "ai": "7.0.99",
+    "better-auth": "^1.7.4",
+    "better-sqlite3": "^12.11.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "express-rate-limit": "^8.2.1",
-    "nodemailer": "^7.0.12",
-    "zod": "^4.1.13"
+    "express-rate-limit": "^8.7.0",
+    "nodemailer": "^10.0.9",
+    "zod": "^4.6.5"
   }
 }

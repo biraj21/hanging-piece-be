@@ -1,6 +1,5 @@
 import { fromNodeHeaders } from "better-auth/node";
-import type { Request, Response } from "express";
-import { Router } from "express";
+import { Router, type Request, type Response } from "express";
 import { z } from "zod";
 
 import { auth } from "#src/config/auth";
@@ -34,7 +33,9 @@ router.put("/profile", requireAuth, async (req: Request, res: Response) => {
     return res.status(200).json({ user: updatedUser });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: "Invalid request body", details: error.issues });
+      return res
+        .status(400)
+        .json({ error: "Invalid request body", details: error.issues });
     }
     console.error("Error updating user profile:", error);
     return res.status(500).json({ error: "Internal server error" });

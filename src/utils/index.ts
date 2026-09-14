@@ -11,7 +11,8 @@ export interface Pm2Info {
  *   instance id is `"0"`.
  */
 export function getPm2Info(): Pm2Info {
-  const pm2Instance = process.env.NODE_APP_INSTANCE ?? process.env.pm_id ?? null;
+  const pm2Instance =
+    process.env.NODE_APP_INSTANCE ?? process.env.pm_id ?? null;
   const isLeader = pm2Instance === null || pm2Instance === "0";
   return { pm2Instance, isLeader };
 }

@@ -10,14 +10,20 @@ export interface AuthenticatedRequest extends Request {
   auth: NonNullable<SessionData>;
 }
 
-export async function requireAuth(req: Request, res: Response, next: NextFunction) {
+export async function requireAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const session = await auth.api.getSession({
       headers: fromNodeHeaders(req.headers),
     });
 
     if (!session || !session.user || !session.session) {
-      return res.status(401).json({ error: "Unauthorized", message: "Authentication required" });
+      return res
+        .status(401)
+        .json({ error: "Unauthorized", message: "Authentication required" });
     }
 
     // Attach user and session to request object
@@ -26,6 +32,8 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     next();
   } catch (error) {
     console.error("Auth middleware error:", error);
-    return res.status(401).json({ error: "Unauthorized", message: "Invalid or expired session" });
+    return res
+      .status(401)
+      .json({ error: "Unauthorized", message: "Invalid or expired session" });
   }
 }

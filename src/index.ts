@@ -49,7 +49,7 @@ const limiter = rateLimit({
         url: req.originalUrl,
         userAgent: req.headers["user-agent"],
         timestamp: new Date().toISOString(),
-      })
+      }),
     );
 
     res.status(429).json({
@@ -67,7 +67,7 @@ app.use(
     origin: env.FRONTEND_ORIGINS,
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true, // allow credentials like cookies, authorization headers, etc.
-  })
+  }),
 );
 
 app.use((req, res, next) => {
@@ -84,7 +84,7 @@ app.use((req, res, next) => {
         status: res.statusCode,
         duration,
         ip,
-      })
+      }),
     );
   });
 
@@ -115,9 +115,13 @@ async function init() {
 
     console.log(`Server is running on port ${env.PORT}`);
     if (pm2Instance === null) {
-      console.log(`[PM2] Leader: true — not running under PM2 (single process)`);
+      console.log(
+        `[PM2] Leader: true — not running under PM2 (single process)`,
+      );
     } else {
-      console.log(`[PM2] Leader: ${isLeader} (NODE_APP_INSTANCE=${pm2Instance})`);
+      console.log(
+        `[PM2] Leader: ${isLeader} (NODE_APP_INSTANCE=${pm2Instance})`,
+      );
     }
 
     printRoutes(app);

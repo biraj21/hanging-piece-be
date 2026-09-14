@@ -36,7 +36,8 @@ const BROWSER_HEADERS = {
   "Accept-Encoding": "gzip, deflate, br",
   Referer: "https://www.chess.com/",
   Origin: "https://www.chess.com",
-  "Sec-Ch-Ua": '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+  "Sec-Ch-Ua":
+    '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
   "Sec-Ch-Ua-Mobile": "?0",
   "Sec-Ch-Ua-Platform": '"Windows"',
   "Sec-Fetch-Dest": "empty",
@@ -44,7 +45,8 @@ const BROWSER_HEADERS = {
   "Sec-Fetch-Site": "same-origin",
 };
 
-const ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?{~}(^)[_]@#$,./&-*++=";
+const ALPHABET =
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?{~}(^)[_]@#$,./&-*++=";
 const PROMO_PIECES = "qnrbkp";
 
 function indexToSquare(index: number): string {
@@ -120,11 +122,16 @@ router.get("/:gameId", async (req: Request, res: Response) => {
   }
 
   try {
-    const response = await fetch(`https://www.chess.com/callback/live/game/${gameId}`, {
-      headers: BROWSER_HEADERS,
-    });
+    const response = await fetch(
+      `https://www.chess.com/callback/live/game/${gameId}`,
+      {
+        headers: BROWSER_HEADERS,
+      },
+    );
     if (!response.ok) {
-      return res.status(response.status).json({ error: "Chess.com game not found" });
+      return res
+        .status(response.status)
+        .json({ error: "Chess.com game not found" });
     }
 
     const data: ChessComGameResponse = (await response.json()) as any;
@@ -143,7 +150,9 @@ router.get("/:gameId", async (req: Request, res: Response) => {
     return res.json(gameData);
   } catch (err) {
     console.error("Failed to fetch chess.com game:", err);
-    return res.status(500).json({ error: "Failed to fetch game from chess.com" });
+    return res
+      .status(500)
+      .json({ error: "Failed to fetch game from chess.com" });
   }
 });
 
