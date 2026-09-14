@@ -5,9 +5,7 @@ import { z } from "zod";
 import { env } from "#src/config/env";
 
 export const MODELS = {
-  GEMINI_3_PRO_PREVIEW: "gemini-3-pro-preview",
-  GEMINI_3_FLASH_PREVIEW: "gemini-3-flash-preview",
-  GEMINI_2_5_PRO: "gemini-2.5-pro",
+  GEMINI_3_FLASH_PREVIEW: "gemini-3.8-flash",
 } as const;
 
 const evaluationSchema = z.union([
@@ -282,7 +280,7 @@ WHEN IN DOUBT: Use simple language like "attacks" or "threatens" instead of spec
 **BAD**: "Knight moves to f3"
 **GOOD**: "The knight retreats to defend the weak e5 pawn"
 
-**BAD**: "Queen captures on d7"  
+**BAD**: "Queen captures on d7"
 **GOOD**: "The queen wins the undefended bishop, gaining 3 points of material"
 
 **BAD**: "Rook goes to e1"
@@ -485,7 +483,7 @@ export async function generateExplanation(
       google: {
         thinkingConfig: {
           includeThoughts: false,
-          thinkingLevel: "minimal",
+          thinkingLevel: "low",
         },
       },
     },
