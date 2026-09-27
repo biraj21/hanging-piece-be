@@ -1,6 +1,13 @@
+import { logger } from "better-auth";
 import nodemailer from "nodemailer";
 
 import { env } from "#src/config/env";
+
+if (!env.GOOGLE_APP_PASSWORD) {
+  logger.warn(
+    "Google app password is not set in environment variables. Welcome email functionality will be disabled.",
+  );
+}
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -17,6 +24,10 @@ export async function sendWelcomeEmail(
   userName: string,
   isRetry = false,
 ) {
+  if (!env.GOOGLE_APP_PASSWORD) {
+    return;
+  }
+
   try {
     if (isRetry) {
       console.log("Retrying to send welcome email to:", userEmail);
